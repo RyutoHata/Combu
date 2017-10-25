@@ -1,14 +1,15 @@
-dcmgr command list ver0.00
+dcmgr command list ver0.01
 
 要求コマンド
 {
   "req_id": 1,                # RequestID、キューにコマンドを投げるたびにインクリメントすること
-  "command": "start",         # コマンド ("start","power-off", "power-on","terninate", or "list")
+  "command": "start",         # コマンド ("start","power-off", "power-on","terminate", or "list")
   "vm_id": 1,                 # 要求の対象になるVM ID。("start"の場合は無視される。
-                              #                      "list"で全部のVMを指定する場合は0を指定する)  "parameter": {                 # "start"の場合は以下で起動のパラメータを指定する。
+                              #                      "list"で全部のVMを指定する場合は0を指定する)  "parameter": {              # "start"の場合は以下で起動のパラメータを指定する。
     "Name": "hoge"            # VMの名前（文字列、ダブらないこと）
     "CPU": 1                  # CPUの数
     "Memory": 8               # メモリサイズ(GB指定)
+    "SSH pub key": "ssh-key"  # SSH Key文字列
   }
 }
 
@@ -25,6 +26,7 @@ dcmgr command list ver0.00
       "Name": "hoge1"         # VMの名前
       "CPU": 1,               # CPUの数
       "Memory": 8,            # メモリサイズ
+      "IP_Address": "192.168.0.xx"  # 割当アドレス 
       "Status": "running"     # 状態("Starting", "Initializing", "Running" ,"Power-off", "terminating", "terminated")
    },
   {
@@ -32,6 +34,7 @@ dcmgr command list ver0.00
       "Name": "hoge2"         # VMの名前
       "CPU": 3,               # CPUの数
       "Memory": 16,           # メモリサイズ
+      "IP_Address": "192.168.0.xx"  # 割当アドレス 
       "Status": "running"     # 状態("Starting", "Initializing", "Running" ,"Power-off", "terminating", "terminated")
    },
    {
