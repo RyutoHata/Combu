@@ -1,0 +1,3 @@
+#Ignore bundler gems.
+/.bundle
+/vendor/bundle
