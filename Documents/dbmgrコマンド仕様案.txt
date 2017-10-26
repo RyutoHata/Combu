@@ -1,44 +1,163 @@
-dcmgr command list ver0.01
+Dcmgr command list ver0.02
 
-要求コマンド
+＊Web APIとDcmgrの間のコマンド
+＊コマンドと応答はJSON形式の文字列とする。
+＊コマンドのリスト
+   - 起動要求("start")         VMの起動要求を行う。
+   - VMリスト("list")          VMの全リストを取得する
+   - 電源OFF要求("power-off")  指定したVMの電源OFFを行う。（内部は当面実装しない。）
+   - 電源ON要求("power-on")    電源OFF中のVMの電源ONを行う。（内部は当面実装しない。）
+   - 削除要求("terminate")     VMの削除を行う。
+   - 全部削除("barusu")        データーベースとVMを全部削除してまっさらにする。
+
+＊（ここの記述とソースコードの実装が異なる場合は、ソースコードの方を正とする。）
+
+
+1. 起動
+1.1 起動要求コマンド
 {
-  "req_id": 1,                # RequestID、キューにコマンドを投げるたびにインクリメントすること
-  "command": "start",         # コマンド ("start","power-off", "power-on","terminate", or "list")
-  "vm_id": 1,                 # 要求の対象になるVM ID。("start"の場合は無視される。
-                              #                      "list"で全部のVMを指定する場合は0を指定する)  "parameter": {              # "start"の場合は以下で起動のパラメータを指定する。
-    "Name": "hoge"            # VMの名前（文字列、ダブらないこと）
-    "CPU": 1                  # CPUの数
-    "Memory": 8               # メモリサイズ(GB指定)
-    "SSH pub key": "ssh-key"  # SSH Key文字列
+  "Req_id": num,              # RequestID、キューにコマンドを投げるたびにインクリメントすること
+  "Command": "start",         # コマンド ("start")
+  "param": {                  # "start"の場合は以下で起動のパラメータを指定する。"list"の場合は無視される。
+    "Name": "hoge",           # VMの名前（文字列）
+    "CPU": 1,                 # Virtual CPUの数
+    "Memory": 8,              # メモリサイズ(GB指定)
+    "SSH_pubkey": "ssh-key"   # SSH Key文字列
   }
 }
-
-
-応答コマンド
+1.2.1 起動応答(成功の場合)
 {
-  "req_id": 1,                # 対応するRequestIDを返す
-  "command": "start",         # 要求コマンドと同じCommandを返す
-  "vm_id": 1,                 # Startの場合は割り当てたVMのIDを返す。それ以外は、要求コマンドと同じIDを返す。
-  "message": "OK",            # 要求が成功の場合は”OK”。そうでなければエラーメッセージをテキストで返す。
-  "paramater": [              # listの場合は以下で各VMの状態のリストを配列で返す。
-  {
-      "vm_id": 1,             # VMのID
+  "Req_id": num,              # 対応するRequestIDを返す
+  "Command": "start",         # 要求コマンドと同じCommandを返す
+  "Message": "OK",            # 要求が成功の場合は”OK”。そうでなければエラーメッセージをテキストで返す。
+  "Param": {                  # listの場合は以下で各VMの状態のリストを配列で返す。
+    "VM_id": 1,               # VMのID番号
+    "IP_Address": "192.168.0.xx"  # 割り当てアドレス
+    "Status": "Initializing"  # 状態
+  },
+}
+1.2.2 起動応答(失敗の場合)
+{
+  "Req_id": num,              # 対応するRequestIDを返す
+  "Command": "start",         # 要求コマンドと同じCommandを返す
+  "Message": "ERROR: Reason...", # 要求が成功の場合は”OK”。そうでなければエラーメッセージをテキストで返す。
+}
+
+2. VMリストの取得
+2.1 VMリスト要求コマンド
+{
+  "Req_id": num,              # RequestID、キューにコマンドを投げるたびにインクリメントすること
+  "Command": "list"           # コマンド ("list")
+}
+2.2 VMリスト応答
+{
+  "Req_id": num,              # 対応するRequestIDを返す
+  "Command": "List",
+  "Message": "OK",            # 要求が成功の場合は”OK”。そうでなければエラーメッセージをテキストで返す。
+  "Param": [                  # VMの数だけリストで返す
+    {
+      "VM_id": 1,             # VMのID
       "Name": "hoge1"         # VMの名前
       "CPU": 1,               # CPUの数
       "Memory": 8,            # メモリサイズ
-      "IP_Address": "192.168.0.xx"  # 割当アドレス 
-      "Status": "running"     # 状態("Starting", "Initializing", "Running" ,"Power-off", "terminating", "terminated")
-   },
-  {
-      "vm_id": 2,             # VMのID
+      "SSH_pubkey": "ssh-key"   # SSH Key文字列
+      "IP_Address": "192.168.0.xx"  # 割り当てアドレス
+      "Status": "running"     # 状態("starting"/"initializing"/"running"/"halting"/"halted"/"terminating"/"terminated")
+    },
+    {
+      "VM_id": 2,             # VMのID
       "Name": "hoge2"         # VMの名前
-      "CPU": 3,               # CPUの数
-      "Memory": 16,           # メモリサイズ
-      "IP_Address": "192.168.0.xx"  # 割当アドレス 
-      "Status": "running"     # 状態("Starting", "Initializing", "Running" ,"Power-off", "terminating", "terminated")
-   },
-   {
-       ...
-   }
-   ]
+      "CPU": 2,               # CPUの数
+      "Memory": 16,            # メモリサイズ
+      "SSH_pubkey": "ssh-key"   # SSH Key文字列
+      "IP_Address": "192.168.0.xx"  # 割り当てアドレス
+      "Status": "running"     # 状態
+    },
+    ...                       # VMの数だけ繰り返す。
+  ]
+}
+
+3. VMの電源OFF
+3.1 電源OFF要求コマンド
+{
+  "Req_id": num,              # RequestID、キューにコマンドを投げるたびにインクリメントすること
+  "Command": "power-off",     # コマンド ("power-off")
+  "VM_id": id                 # PowerOffするVMのID
+}
+3.2 電源OFF応答(成功)
+{
+  "Req_id": num,              # 対応するRequestIDを返す
+  "Command": "power-off",
+  "Message": "OK",            # 要求が成功の場合は”OK”。
+  "Param": {
+    "VM_id": id               # PowerOffするVMのID
+    "Status": "Halting"       # VMの状態
+  }
+}
+3.3 電源OFF応答(失敗)
+{
+  "Req_id": num,              # 対応するRequestIDを返す
+  "Command": "power-off",
+  "Message": "ERROR: Reason...",   # 要求が成功の場合は”OK”。そうでなければエラーメッセージをテキストで返す。
+}
+
+4. VMの電源ON
+4.1 電源ON要求コマンド
+{
+  "Req_id": num,              # RequestID、キューにコマンドを投げるたびにインクリメントすること
+  "Command": "power-on",      # コマンド ("power-on")
+  "VM_id": id                 # PowerOnするVMのID
+}
+4.2 電源ON応答(成功)
+{
+  "Req_id": num,              # 対応するRequestIDを返す
+  "Command": "power-on",
+  "Message": "OK",            # 要求が成功の場合は”OK”。
+  "Param": {
+    "VM_id": id               # PowerOnするVMのID
+    "Status": "Running"       # VMの状態
+  }
+}
+4.3 電源ON応答(失敗)
+{
+  "Req_id": num,              # 対応するRequestIDを返す
+  "Command": "power-off",
+  "Message": "ERROR: Reason...",   # 要求が成功の場合は”OK”。そうでなければエラーメッセージをテキストで返す。
+}
+
+5. 削除要求
+5.1 削除要求コマンド
+{
+  "Req_id": num,              # RequestID、キューにコマンドを投げるたびにインクリメントすること
+  "Command": "terminate",     # コマンド ("terminate")
+  "VM_id": id                 # PowerOffするVMのID
+}
+5.2 削除応答(成功)
+{
+  "Req_id": num,              # 対応するRequestIDを返す
+  "Command": "terminate",
+  "Message": "OK",            # 要求が成功の場合は”OK”。
+  "Param": {
+    "VM_id": id               # PowerOffするVMのID
+    "Status": "terminating"       # VMの状態
+  }
+}
+5.3 削除応答(失敗)
+{
+  "Req_id": num,              # 対応するRequestIDを返す
+  "Command": "terminate",
+  "Message": "ERROR: Reason...",   # 要求が成功の場合は”OK”。そうでなければエラーメッセージをテキストで返す。
+}
+
+6. 全部削除
+6.1 全部削除要求コマンド
+{
+  "Req_id": num,              # RequestID、キューにコマンドを投げるたびにインクリメントすること
+  "Command": "barusu",        # コマンド ("barusu")
+}
+6.2 全部削除応答コマンド
+{
+  "Req_id": num,              # 対応するRequestIDを返す
+  "Command": "barusu",
+  "Message": "OK",            # 要求が成功の場合は”OK”。
 }
