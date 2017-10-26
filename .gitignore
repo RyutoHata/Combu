@@ -1,3 +1,4 @@
 #Ignore bundler gems.
 /.bundle
 /vendor/bundle
+*.sqlite3

@@ -17,6 +17,18 @@ start_cmd =<<EOS
   }
 }
 EOS
+start_cmd2 =<<EOS
+{
+  "Req_id": 2,
+  "Command": "start",
+  "Param": {
+    "Name": "hoge",
+    "CPU": 4,
+    "Memory": 10,
+    "SSH_pubkey": "ssh-key2"
+  }
+}
+EOS
 
 # listコマンドを作る。
 list_cmd =<<EOS
@@ -64,6 +76,8 @@ EOS
 dcmgr = Dcmgr.new
 str = dcmgr.request(start_cmd)
 puts str
+str = dcmgr.request(start_cmd2)
+puts str
 str = dcmgr.request(list_cmd)
 puts str
 str = dcmgr.request(poweron_cmd)
@@ -72,5 +86,5 @@ str = dcmgr.request(poweroff_cmd)
 puts str
 str = dcmgr.request(terminate_cmd)
 puts str
-str = dcmgr.request(barusu_cmd)
-puts str
+#str = dcmgr.request(barusu_cmd)
+#puts str

@@ -1,4 +1,4 @@
-Dcmgr command list ver0.02
+Dcmgr command list ver0.03
 
 ＊Web APIとDcmgrの間のコマンド
 ＊コマンドと応答はJSON形式の文字列とする。
@@ -33,6 +33,7 @@ Dcmgr command list ver0.02
   "Param": {                  # listの場合は以下で各VMの状態のリストを配列で返す。
     "VM_id": 1,               # VMのID番号
     "IP_Address": "192.168.0.xx"  # 割り当てアドレス
+    "Host": "IA02"            # Hostマシン名
     "Status": "Initializing"  # 状態
   },
 }
@@ -62,6 +63,7 @@ Dcmgr command list ver0.02
       "Memory": 8,            # メモリサイズ
       "SSH_pubkey": "ssh-key"   # SSH Key文字列
       "IP_Address": "192.168.0.xx"  # 割り当てアドレス
+      "Host": "IA02"          # Hostマシン名
       "Status": "running"     # 状態("starting"/"initializing"/"running"/"halting"/"halted"/"terminating"/"terminated")
     },
     {
@@ -71,6 +73,7 @@ Dcmgr command list ver0.02
       "Memory": 16,            # メモリサイズ
       "SSH_pubkey": "ssh-key"   # SSH Key文字列
       "IP_Address": "192.168.0.xx"  # 割り当てアドレス
+      "Host": "IA03"          # Hostマシン名
       "Status": "running"     # 状態
     },
     ...                       # VMの数だけ繰り返す。
