@@ -64,19 +64,71 @@ barusu_cmd =<<EOS
 }
 EOS
 
+def dummy_recv1
+  File.open(AL_RECV_PATH + "IA02", mode = "w") do |f|
+    f.puts "Id    Name                           State"
+    f.puts "----------------------------------------------------"
+    f.puts "1     v1                             running"
+  end
+end
+
+def dummy_recv2
+  File.open(AL_RECV_PATH + "IA02", mode = "w") do |f|
+    f.puts "Id    Name                           State"
+    f.puts "----------------------------------------------------"
+    f.puts "1     v1                             running"
+    f.puts "2     v2                             running"
+  end
+end
+
+def dummy_recv3
+  File.open(AL_RECV_PATH + "IA02", mode = "w") do |f|
+    f.puts "Id    Name                           State"
+    f.puts "----------------------------------------------------"
+    f.puts "2     v2                             running"
+  end
+end
+
+def dummy_recv4
+  File.open(AL_RECV_PATH + "IA02", mode = "w") do |f|
+    f.puts "Id    Name                           State"
+    f.puts "----------------------------------------------------"
+  end
+end
+
 # testのMain
 dcmgr = Dcmgr.new
 str = dcmgr.request(start_cmd)
+print "test_dcmgr.rb : "
 puts str
+STDIN.gets
+
+dummy_recv1
 str = dcmgr.request(start_cmd2)
+print "test_dcmgr.rb : "
 puts str
+STDIN.gets
+
+dummy_recv2
 str = dcmgr.request(list_cmd)
+print "test_dcmgr.rb : "
 puts str
+STDIN.gets
+
 str = dcmgr.request(terminate_cmd)
+print "test_dcmgr.rb : "
 puts str
+STDIN.gets
+
+dummy_recv3
 str = dcmgr.request(terminate_cmd2)
+print "test_dcmgr.rb : "
 puts str
+STDIN.gets
+
+dummy_recv4
 str = dcmgr.request(list_cmd)
+print "test_dcmgr.rb : "
 puts str
 #str = dcmgr.request(barusu_cmd)
 #puts str

@@ -33,23 +33,41 @@ class AccessLibrary
   def self.Start(host, rid, param)
     # host: VMのホスト名
     # param: [Name, CPU, Memory, vm_name, ip_addr, ssh_key]
-    if not SC_VMHOSTNAME.include?(host) then
+    if not SC_VMHOSTNAME.include?(host)
       STDERR.puts "AccessLibrary::Start invalid host name (#{host})"
       return
     end
     File.open(AL_SEND_PATH + host + "/" + rid.to_s, mode = "w") do |f|
       f.write(["Start", param].join(", "))
+      f.puts
     end
   end
   def self.terminate(host, rid, name)
     File.open(AL_SEND_PATH + host + "/" + rid.to_s, mode = "w") do |f|
       f.write(["Terminate", name].join(", "))
+      f.puts
     end
+  end
+  def self.readVMStatus
+    stat = {}
+    for h in SC_VMHOSTNAME do
+      begin
+        File.open(AL_RECV_PATH + h, mode = "r") do |f|
+          2.times{ f.gets }  #2行読み飛ばし
+          while s = f.gets do
+            t = s.split(' ')
+            stat[t[1]] = t[2]
+          end
+        end
+      rescue Errno::ENOENT
+        # ファイルが見つからなければ無視
+      end
+    end
+    return stat
   end
   def self.list
   end
 end
-
 
 
 # DBファイルがなければデータベースを作る。
@@ -91,6 +109,23 @@ class Dcmgr
   def initilize
   end
 
+  def dbUpdate
+    vm_stat = AccessLibrary::readVMStatus
+    Vm.all.each do |vm|
+      if vm.status == "Initilizing"
+        if vm_stat["v#{vm.id}"] == "running"
+          vm.status = "Running"
+          vm.save
+        end
+      elsif vm.status == "Terminating"
+        if not vm_stat["v#{vm.id}"]
+          vm.status = "Terminated"
+          vm.save
+        end
+      end
+    end
+  end
+
   def scheduler(vcpu, vmem)
     #return "Message", "VM HOSTNAME", "Assigned IP Adress"
     random = Random.new
@@ -106,7 +141,7 @@ class Dcmgr
     vmem = req[:Param][:Memory]
     ssh = req[:Param][:SSH_pubkey]
     mes, host, ip_addr = scheduler(vcpu, vmem)
-    if mes == "OK" then
+    if mes == "OK"
       param = ['v' + $VM_ID.to_s, vcpu, vmem, ip_addr, ssh]
       AccessLibrary::Start(host, rid, param)
       vm = Vm.new
@@ -151,13 +186,19 @@ class Dcmgr
   end
 
   def cmdTerminate(req, res)
-
-
-    res[:Message] = "OK"
-    res[:Param] = {
-      :VM_id => req[:VM_id],
-      :Status => "terminating"
-    }
+    vm = Vm.find(req[:VM_id])
+    if vm.status == "Running"
+      res[:Message] = "OK"
+      res[:Param] = {
+        :VM_id => req[:VM_id],
+        :Status => "Terminating"
+      }
+      vm.status = "Terminating"
+      vm.save
+      AccessLibrary::terminate(vm.host, req[:Req_id], "v" + req[:VM_id].to_s)
+    else
+      res[:Message] = "The VM is not running"
+    end
     return res
   end
 
@@ -168,6 +209,8 @@ class Dcmgr
   end
 
   def request(command)
+    dbUpdate
+
     req = JSON.parse(command, {:symbolize_names => true})
     c = req[:Command]
     res = { :Req_id => req[:Req_id], :Command => c }
