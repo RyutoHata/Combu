@@ -3,7 +3,6 @@
 #
 
 require 'json'
-require 'rubygems'
 require 'active_record'
 
 ADAPTER = 'sqlite3'       # SQLite3をデータベースとして使う
