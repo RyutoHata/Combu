@@ -1,0 +1,33 @@
+作業ログ20171031 -- Komiya
+
+概要
+ - dcmgrクラスとそのテストコードを作成しました。
+ - databaseとして、sqlite3を使っています。
+ - WebAPI/Queueからの要求コマンドに応じて、
+   VM_HOST(IA02..IA04)に対して、VMの起動要求を出すところまで実装しました。
+ - Schedulerは仮実装です。（残りのリソースを見ないでランダムにホストとIPを割り当てます。）
+ - power-on, power-offは未実装。
+
+Databaseについて、
+  Sqlite3を選択しました。（特に理由はありません。）
+  bundle installをするとインストールされるはず。
+
+
+WebAPI/QueueとのIF
+  dcmgrクラスを定義して、Requestメソッドでコマンドを送ります。
+  Requestメソッドも戻り値がコマンドの応答になります。
+  コマンド詳細は、dcmgrコマンド仕様案を見てください。（先週からかなりUpdateしています。）
+
+dcmgrクラスについて
+  一瞬で終了するはずなので、スレッド化はしていません。
+  呼び出し方は、テストコードtest_dcmgr.rbを参照してください。
+  現状、VMの状態の取得が未実装なので、各VMの状態はRunningにはなりません。
+
+AccessLibraryについて
+  NFSを利用して実装します。
+  NFS上の特定フォルダ(/home/export/combu/send/IA02,etc..)に、コマンドとパラメータ記述した
+  ファイルを置くことにより、各VMホストに対して起動・削除要求コマンドを送ります。
+  VMの状態を取得する部分は未実装です。
+  (/home/export/combu/recv/ の下に各VMHostの
+    vrish list --all
+  を実行した出力をファイルでおいてもらうようにするかも。
