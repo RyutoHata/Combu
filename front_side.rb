@@ -22,10 +22,12 @@ post '/vm' do
 end
 
 get '/vm' do
-  "#{params[:id]}"
+  list = set_list_params
+  puts list
+
 end
 
-post '/vm/:id' do
+put '/vm/:id' do
   "vm #{params[:id]} power_control"
 end
 
@@ -39,10 +41,18 @@ end
 
 private
 def set_start_params
-  hash = {}
-  hash["Req_id"] = 1
-  hash["Command"] = "start"
-  hash["Params"] = params
-  start = JSON.dump(hash)
+  request = {}
+  request["Req_id"] = 1
+  request["Command"] = "start"
+  request["Params"] = params
+  start = JSON.dump(request)
   return start
+end
+
+def set_list_params
+  request = {}
+  request["Req_id"]  = 1
+  request["Command"] = "list"
+  list = JSON.dump(request)
+  return list
 end
