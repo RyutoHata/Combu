@@ -36,7 +36,8 @@ delete '/vm/:id' do
 end
 
 delete '/vm' do
-  "all vm is terminated"
+  all_terminated = set_all_terminated_params
+  puts all_terminated
 end
 
 private
@@ -55,4 +56,12 @@ def set_list_params
   request["Command"] = "list"
   list = JSON.dump(request)
   return list
+end
+
+def set_all_terminated_params
+  request = {}
+  request["Req_id"] = 1
+  request["Command"] = "barusu"
+  all_terminated = JSON.dump(request)
+  return all_terminated
 end
