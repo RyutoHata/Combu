@@ -1,11 +1,11 @@
 require 'sinatra'
 require 'json'
 
-get '/create_vm' do
+get '/vm/new' do
   erb :create
 end
 
-post '/create_vm' do
+post '/vm' do
   @name    = params[:Name]
   @cpu     = params[:CPU]
   @memory  = params[:Memory]
@@ -19,6 +19,22 @@ post '/create_vm' do
   #dbmgr = AccessLibrary.new
   #dbmgr.request(start)
   erb :show
+end
+
+get '/vm' do
+  "#{params[:id]}"
+end
+
+post '/vm/:id' do
+  "vm #{params[:id]} power_control"
+end
+
+delete '/vm/:id' do
+  "delete vm #{params[:id]}"
+end
+
+delete '/vm' do
+  "all vm is terminated"
 end
 
 private
