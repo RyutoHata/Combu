@@ -130,5 +130,12 @@ dummy_recv4
 str = dcmgr.request(list_cmd)
 print "test_dcmgr.rb : "
 puts str
+STDIN.gets
+
+
+
+
+
+
 #str = dcmgr.request(barusu_cmd)
 #puts str

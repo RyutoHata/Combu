@@ -4,6 +4,7 @@
 
 require 'json'
 require 'active_record'
+require 'socket'
 
 ADAPTER = 'sqlite3'       # SQLite3をデータベースとして使う
 DBFILE  = 'db.sqlite3'    # データベースファイルのファイル名
@@ -17,10 +18,30 @@ SC_VMHOSTNAME = ['IA02', 'IA03', 'IA04']
 SC_AVAILABLE_VMEM = [16, 16, 16]
 # 割り当て可能なCPUの数
 SC_AVAILABLE_VCPU = [ 8,  8,  8]
+# 割り当て可能なIPアドレスのリスト
+SC_AVAILABLE_IP = [
+  "192.168.0.20",
+  "192.168.0.21",
+  "192.168.0.22",
+  "192.168.0.23",
+  "192.168.0.24",
+  "192.168.0.25",
+  "192.168.0.26",
+  "192.168.0.27",
+  "192.168.0.28",
+  "192.168.0.29",
+  "192.168.0.30",
+]
+# 割り当てIPのカウンタ  0で初期化
+$SC_IP_COUNTER = 0
 
 # VMとのコマンドの受け渡しを行うホームディレクトリ
-AL_HOME_PATH = './'                       # 開発環境用
-#SC_HOME_PATH = "/home/export/combu/"      # 本番環境用
+if Socket.gethostname == 'IA01'
+  AL_HOME_PATH = "/home/exports/combu/"      # 本番環境用
+else
+  AL_HOME_PATH = './'                       # 開発環境用
+end
+
 AL_SEND_PATH = AL_HOME_PATH + 'send/'     # 起動リクエストを置く
 AL_RECV_PATH = AL_HOME_PATH + 'recv/'     # virsh list --all の出力を置く
 
@@ -127,9 +148,32 @@ class Dcmgr
 
   def scheduler(vcpu, vmem)
     #return "Message", "VM HOSTNAME", "Assigned IP Adress"
+    @vms = Vm.where.not(status: "Terminated")
+
+    #割り当てるIPアドレスを決める
+    cnt = $SC_IP_COUNTER
+    max_cnt = SC_AVAILABLE_IP.count
+
+    ip = ""
+    for i in 0..max_cnt do
+      if not @vms.exists?(:ip_addr => SC_AVAILABLE_IP[cnt])
+        ip = SC_AVAILABLE_IP[cnt]
+        break
+      else
+        cnt = cnt + 1
+        if cnt >= max_cnt then cnt = 0 end
+      end
+    end
+    if ip == ""
+      return "No Available IP Address", "", ""
+    end
+    cnt = cnt + 1
+    if cnt >= max_cnt then cnt = 0 end
+    $SC_IP_COUNTER = cnt
+
+    #割り当てるホストを決める
     random = Random.new
     host = SC_VMHOSTNAME[random.rand(0..2)]
-    ip = "192.168.0." + random.rand(20..100).to_s
     return "OK", host, ip  #dummy
   end
 
