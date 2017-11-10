@@ -171,10 +171,27 @@ class Dcmgr
     if cnt >= max_cnt then cnt = 0 end
     $SC_IP_COUNTER = cnt
 
-    #割り当てるホストを決める
-    random = Random.new
-    host = SC_VMHOSTNAME[random.rand(0..2)]
-    return "OK", host, ip  #dummy
+    avmem = Marshal.load(Marshal.dump(SC_AVAILABLE_VMEM))
+    avcpu = Marshal.load(Marshal.dump(SC_AVAILABLE_VCPU))
+    for vm in @vms
+      hid = SC_VMHOSTNAME.index(vm.host)
+      avcpu[hid] -= vm.vcpu
+      avmem[hid] -= vm.vmemory
+    end
+    cpu_max = 0
+    cpu_max_index = -1
+    for i in 0 .. SC_VMHOSTNAME.count-1
+      if avcpu[i] > vcpu && avmem[i] > vmem
+        if cpu_max < avcpu[i]
+          cpu_max = avcpu[i]
+          cpu_max_index = i
+        end
+      end
+    end
+    if cpu_max_index == -1
+      return "No Available Host Resource", "", ""
+    end
+    return "OK", SC_VMHOSTNAME[cpu_max_index], ip
   end
 
   # Dcmgr用メソッド
