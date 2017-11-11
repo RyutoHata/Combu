@@ -14,36 +14,41 @@ post '/vm' do
   # 受け取ったparamsをjsonに突っ込む
   start = set_start_params
 
-  call_manager(start)
+  response = call_manager(start)
   erb :show
 end
 
 get '/vm' do
   list = set_list_params
-  call_manager(list)
+  response = call_manager(list)
+  return response
 end
 
 put '/vm/:id' do
   power = set_power_params
-  call_manager(power)
+  response = call_manager(power)
+  return response
 end
 
 delete '/vm/:id' do
   terminated = get_terminated_params
-  call_manager(terminated)
+  response = call_manager(terminated)
+  return response
 end
 
 delete '/vm' do
   all_terminated = set_all_terminated_params
-  call_manager(all_terminated)
+  response = call_manager(all_terminated)
+  return response
 end
 
 private
 
 def call_manager(command)
   # マネジャーを呼び出す
-  #dbmgr = AccessLibrary.new
-  #dbmgr.request(command)
+  dbmgr = AccessLibrary.new
+  response = dbmgr.request(command)
+  return response
 end
 
 def set_start_params
