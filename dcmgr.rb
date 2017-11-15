@@ -35,6 +35,9 @@ SC_AVAILABLE_IP = [
 # 割り当てIPのカウンタ  0で初期化
 $SC_IP_COUNTER = 0
 
+# リクエストID
+$REQ_ID = 1
+
 # VMとのコマンドの受け渡しを行うホームディレクトリ
 if Socket.gethostname == 'IA01'
   AL_HOME_PATH = "/home/exports/combu/"      # 本番環境用
@@ -272,6 +275,11 @@ class Dcmgr
     dbUpdate
 
     req = JSON.parse(command, {:symbolize_names => true})
+
+    #Req_idはdcmgrが振り直すことにする。
+    req[:Req_id] = $REQ_ID
+    $REQ_ID += 1
+
     c = req[:Command]
     res = { :Req_id => req[:Req_id], :Command => c }
     case c
