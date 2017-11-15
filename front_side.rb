@@ -2,6 +2,10 @@ require 'sinatra'
 require 'json'
 require './dcmgr'
 
+get '/' do
+  erb :home
+end
+
 get '/vm/new' do
   erb :create
 end
