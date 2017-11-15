@@ -1,5 +1,6 @@
 require 'sinatra'
 require 'json'
+require './dcmgr'
 
 get '/vm/new' do
   erb :create
@@ -46,7 +47,7 @@ private
 
 def call_manager(command)
   # マネジャーを呼び出す
-  dbmgr = AccessLibrary.new
+  dbmgr = Dcmgr.new
   response = dbmgr.request(command)
   return response
 end
