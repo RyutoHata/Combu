@@ -11,12 +11,9 @@ post '/vm' do
   @cpu     = params[:CPU]
   @memory  = params[:Memory]
   @ssh_key = params[:SSH_pubkey]
-
-  # 受け取ったparamsをjsonに突っ込む
   start = set_start_params
-
   response = call_manager(start)
-  erb :show
+  response
 end
 
 get '/vm' do
@@ -53,10 +50,12 @@ def call_manager(command)
 end
 
 def set_start_params
+  params[:CPU] = params[:CPU].to_i
+  params[:Memory] = params[:Memory].to_i
   request = {}
   request["Req_id"] = 1
   request["Command"] = "start"
-  request["Params"] = params
+  request["Param"] = params
   start = JSON.dump(request)
   return start
 end
