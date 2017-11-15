@@ -6,6 +6,10 @@ get '/vm/new' do
   erb :create
 end
 
+get '/vm/delete_test' do
+  erb :test
+end
+
 post '/vm' do
   @name    = params[:Name]
   @cpu     = params[:CPU]
@@ -16,7 +20,7 @@ post '/vm' do
   response
 end
 
-get '/vm' do
+get '/vms' do
   list = set_list_params
   response = call_manager(list)
   return response
@@ -29,7 +33,7 @@ put '/vm/:id' do
 end
 
 delete '/vm/:id' do
-  terminated = get_terminated_params
+  terminated = set_terminated_params
   response = call_manager(terminated)
   return response
 end
