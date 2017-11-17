@@ -12,19 +12,20 @@ start_cmd =<<EOS
   "Param": {
     "Name": "hoge",
     "CPU": 1,
-    "Memory": 8,
+    "Memory": 512,
     "SSH_pubkey": "ssh-key"
   }
 }
 EOS
+
 start_cmd2 =<<EOS
 {
   "Req_id": 2,
   "Command": "start",
   "Param": {
     "Name": "hoge2",
-    "CPU": 4,
-    "Memory": 10,
+    "CPU": 2,
+    "Memory": 1024,
     "SSH_pubkey": "ssh-key2"
   }
 }
