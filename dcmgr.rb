@@ -61,13 +61,13 @@ class AccessLibrary
       return
     end
     File.open(AL_SEND_PATH + host + "/" + rid.to_s, mode = "w") do |f|
-      f.write(["Start", param].join(", "))
+      f.write("/home/kvm/start.sh \"" + [param].join("\" \"") + "\"")
       f.puts
     end
   end
   def self.terminate(host, rid, name)
     File.open(AL_SEND_PATH + host + "/" + rid.to_s, mode = "w") do |f|
-      f.write(["Terminate", name].join(", "))
+      f.write("/home/kvm/terminate.sh \"#{name}\"")
       f.puts
     end
   end
