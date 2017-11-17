@@ -15,7 +15,7 @@ SC_VMHOST_NUM = 3
 # VMのホスト名
 SC_VMHOSTNAME = ['IA02', 'IA03', 'IA04']
 # 割り当て可能なMEMORYの量
-SC_AVAILABLE_VMEM = [16, 16, 16]
+SC_AVAILABLE_VMEM = [16384, 16384, 16384]
 # 割り当て可能なCPUの数
 SC_AVAILABLE_VCPU = [ 8,  8,  8]
 # 割り当て可能なIPアドレスのリスト
@@ -42,7 +42,7 @@ $REQ_ID = 1
 if Socket.gethostname == 'IA01'
   AL_HOME_PATH = "/home/exports/combu/"      # 本番環境用
 else
-  AL_HOME_PATH = './'                       # 開発環境用
+  AL_HOME_PATH = './../'                       # 開発環境用
 end
 
 AL_SEND_PATH = AL_HOME_PATH + 'send/'     # 起動リクエストを置く
@@ -95,7 +95,6 @@ end
 
 # DBファイルがなければデータベースを作る。
 def createDatabase
-  return if File.exist?(DBFILE)
   ActiveRecord::Base.establish_connection(:adapter => ADAPTER, :database => DBFILE)
   ActiveRecord::Migration.create_table :vms do |t|
     t.string :name
@@ -107,7 +106,6 @@ def createDatabase
     t.string :ssh_key
     t.timestamps
   end
-  $VM_ID = 1
 end
 
 # データベースファイルを消去して作り直し
@@ -120,10 +118,12 @@ end
 # dcmgr.rbが読み込まれるときに実行される
 #
 ActiveRecord::Base.establish_connection("adapter"=>ADAPTER, "database"=>DBFILE)
-createDatabase
+createDatabase if not File.exist?(DBFILE)
 class Vm < ActiveRecord::Base
 end
-
+vm = Vm.last
+$VM_ID = 1
+$VM_ID = vm.id + 1 if vm
 
 # Data Center Manager Class
 #
@@ -168,7 +168,7 @@ class Dcmgr
       end
     end
     if ip == ""
-      return "No Available IP Address", "", ""
+      return "No Available IP Address", "", "", ""
     end
     cnt = cnt + 1
     if cnt >= max_cnt then cnt = 0 end
@@ -192,9 +192,13 @@ class Dcmgr
       end
     end
     if cpu_max_index == -1
-      return "No Available Host Resource", "", ""
+      return "No Available Host Resource", "", "", ""
     end
-    return "OK", SC_VMHOSTNAME[cpu_max_index], ip
+    # MACアドレスは乱数で決める。多分重ならない
+    rn = Random.new
+    mac_addr = sprintf("02:%02x:%02x:%02x:%02x:%02x", rn.rand(0..255),
+      rn.rand(0..255), rn.rand(0..255), rn.rand(0..255), rn.rand(0..255))
+    return "OK", SC_VMHOSTNAME[cpu_max_index], ip, mac_addr
   end
 
   # Dcmgr用メソッド
@@ -203,9 +207,10 @@ class Dcmgr
     vcpu = req[:Param][:CPU]
     vmem = req[:Param][:Memory]
     ssh = req[:Param][:SSH_pubkey]
-    mes, host, ip_addr = scheduler(vcpu, vmem)
+    vmhost = req[:Param][:Name]
+    mes, host, ip_addr, mac_addr = scheduler(vcpu, vmem)
     if mes == "OK"
-      param = ['v' + $VM_ID.to_s, vcpu, vmem, ip_addr, ssh]
+      param = ['v' + $VM_ID.to_s, vcpu, vmem, ip_addr, vmhost, ssh]
       AccessLibrary::Start(host, rid, param)
       vm = Vm.new
       vm.name = req[:Param][:Name]
@@ -250,7 +255,7 @@ class Dcmgr
 
   def cmdTerminate(req, res)
     vm = Vm.find(req[:VM_id])
-    if vm.status == "Running"
+    if vm.status == "Running" or vm.status == "Initilizing"
       res[:Message] = "OK"
       res[:Param] = {
         :VM_id => req[:VM_id],
