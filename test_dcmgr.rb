@@ -31,6 +31,21 @@ start_cmd2 =<<EOS
 }
 EOS
 
+poweroff_cmd =<<EOS
+{
+  "Req_id": 7,
+  "Command": "power-off",
+  "VM_id": 1
+}
+EOS
+
+poweron_cmd =<<EOS
+{
+  "Req_id": 7,
+  "Command": "power-on",
+  "VM_id": 1
+}
+EOS
 # listコマンド
 list_cmd =<<EOS
 {
@@ -42,7 +57,7 @@ EOS
 # 削除コマンド
 terminate_cmd =<<EOS
 {
-  "Req_id": 4,
+  "Req_id": 24,
   "Command": "terminate",
   "VM_id": 1
 }
@@ -51,7 +66,7 @@ EOS
 # 削除コマンド
 terminate_cmd2 =<<EOS
 {
-  "Req_id": 5,
+  "Req_id": 25,
   "Command": "terminate",
   "VM_id": 2
 }
@@ -90,6 +105,15 @@ def dummy_recv3
   end
 end
 
+def dummy_recv5
+  File.open(AL_RECV_PATH + "IA02", mode = "w") do |f|
+    f.puts "Id    Name                           State"
+    f.puts "----------------------------------------------------"
+    f.puts "1     v1                             shut off"
+    f.puts "2     v2                             running"
+  end
+end
+
 def dummy_recv4
   File.open(AL_RECV_PATH + "IA02", mode = "w") do |f|
     f.puts "Id    Name                           State"
@@ -116,13 +140,35 @@ print "test_dcmgr.rb : "
 puts str
 STDIN.gets
 
-str = dcmgr.request(terminate_cmd)
+str = dcmgr.request(poweroff_cmd)
+print "test_dcmgr.rb : "
+puts str
+STDIN.gets
+
+dummy_recv5
+str = dcmgr.request(list_cmd)
+print "test_dcmgr.rb : "
+puts str
+STDIN.gets
+
+str = dcmgr.request(poweron_cmd)
+print "test_dcmgr.rb : "
+puts str
+STDIN.gets
+
+dummy_recv2
+str = dcmgr.request(list_cmd)
 print "test_dcmgr.rb : "
 puts str
 STDIN.gets
 
 dummy_recv3
 str = dcmgr.request(terminate_cmd2)
+print "test_dcmgr.rb : "
+puts str
+STDIN.gets
+
+str = dcmgr.request(terminate_cmd)
 print "test_dcmgr.rb : "
 puts str
 STDIN.gets
