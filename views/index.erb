@@ -12,6 +12,7 @@
       <th>IPアドレス</th>
       <th>ステータス</th>
       <th>削除</th>
+      <th>電源</th>
     </tr>
   </thead>
   <% unless @data.nil? %>
@@ -25,6 +26,15 @@
           <form method="post" action="/vm/<%= vm["VM_id"] %>">
             <input type="hidden" name="_method" value="DELETE">
             <input type="submit" value="削除する">
+          </form>
+        </td>
+
+        <td>
+          <form method="post" action="/vm/<%= vm["VM_id"] %>">
+            <input type="hidden" name="_method" value="PUT">
+            <input type="radio" name="power" value="power-on">ON
+            <input type="radio" name="power" value="power-off">OFF
+            <input type="submit" value="実行">
           </form>
         </td>
       </tr>

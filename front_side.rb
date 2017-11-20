@@ -11,13 +11,11 @@ get '/vm/new' do
 end
 
 post '/vm' do
-  @name    = params[:Name]
-  @cpu     = params[:CPU]
-  @memory  = params[:Memory]
-  @ssh_key = params[:SSH_pubkey]
   start = set_start_params
   response = call_manager(start)
-  response
+  @new_vm = conv_hash(response)
+  @new_data = @new_vm['Param']
+  erb :show
 end
 
 get '/vm' do
