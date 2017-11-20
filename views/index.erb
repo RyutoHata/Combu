@@ -1,0 +1,34 @@
+<h1>VM 一覧</h1>
+
+<a href="/vm/new">新規作成</a>
+<table border="1">
+  <thead>
+    <tr>
+      <th>VM ID</th>
+      <th>CPU 数</th>
+      <th>メモリ(MB)</th>
+      <th>SSH公開鍵</th>
+      <th>サーバー</th>
+      <th>IPアドレス</th>
+      <th>ステータス</th>
+      <th>削除</th>
+    </tr>
+  </thead>
+  <% unless @data.nil? %>
+  <tbody>
+    <% @data.each do |vm| %>
+      <tr>
+        <% vm.each do |item, value| %>
+          <td><%= value %></td>
+        <% end %>
+        <td>
+          <form method="post" action="/vm/<%= vm["VM_id"] %>">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="削除する">
+          </form>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+  <% end %>
+</table>

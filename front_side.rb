@@ -23,7 +23,9 @@ end
 get '/vm' do
   list = set_list_params
   response = call_manager(list)
-  return response
+  @list = conv_hash(response)
+  @data = @list['Param']
+  erb :index
 end
 
 put '/vm/:id' do
@@ -33,9 +35,10 @@ put '/vm/:id' do
 end
 
 delete '/vm/:id' do
-  terminated = get_terminated_params
+  terminated = set_terminated_params
   response = call_manager(terminated)
-  return response
+  @deleted_vm = conv_hash(response)
+  erb :delete
 end
 
 delete '/vm' do
@@ -96,4 +99,9 @@ def set_all_terminated_params
   request["Command"] = "barusu"
   all_terminated = JSON.dump(request)
   return all_terminated
+end
+
+def conv_hash(json)
+  hash = JSON.parse(json)
+  hash
 end
