@@ -7,16 +7,17 @@
 
 import os
 import time
-import subprocess
+import commands
 
 #定義--------------------
-WRITE_PATH = "/var/ia01/recv/@@@/"
+#@@@はサーバーネーム
+WRITE_PATH = "/mnt/ia01/combu/recv/@@@/"
 
 
 #吐き出し-----------------
 while 1:
-    f = open(WRITE_PATH,"w")
-    put = subprocess.check_output("virsh list --all")
-    f.write(str(put))
-    f.close()
-    time.sleep(300)
+    #f = open(WRITE_PATH,"w")
+    put = commands.getoutput("virsh list --all >" + WRITE_PATH)
+    #f.write(str(put))
+    #f.close()
+    time.sleep(2)
