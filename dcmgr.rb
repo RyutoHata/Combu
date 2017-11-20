@@ -39,7 +39,7 @@ $SC_IP_COUNTER = 0
 $REQ_ID = 1
 
 # VMとのコマンドの受け渡しを行うホームディレクトリ
-if Socket.gethostname == 'IA01'
+if Socket.gethostname[0..3] == 'IA01'
   AL_HOME_PATH = "/home/exports/combu/"      # 本番環境用
 else
   AL_HOME_PATH = './../'                       # 開発環境用
