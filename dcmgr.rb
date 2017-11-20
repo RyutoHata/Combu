@@ -39,7 +39,7 @@ $SC_IP_COUNTER = 0
 $REQ_ID = 1
 
 # VMとのコマンドの受け渡しを行うホームディレクトリ
-if Socket.gethostname == 'IA01'
+if Socket.gethostname[0..3] == 'IA01'
   AL_HOME_PATH = "/home/exports/combu/"      # 本番環境用
 else
   AL_HOME_PATH = './../'                       # 開発環境用
@@ -69,6 +69,16 @@ class AccessLibrary
     File.open(AL_SEND_PATH + host + "/" + rid.to_s, mode = "w") do |f|
       f.write("/home/kvm/terminate.sh \"#{name}\"")
       f.puts
+    end
+  end
+  def self.poweroff(host, rid, name)
+    File.open(AL_SEND_PATH + host + "/" + rid.to_s, mode = "w") do |f|
+      f.write("virsh shutdown #{name}")
+    end
+  end
+  def self.poweron(host, rid, name)
+    File.open(AL_SEND_PATH + host + "/" + rid.to_s, mode = "w") do |f|
+      f.write("virsh start #{name}")
     end
   end
   def self.readVMStatus
@@ -135,7 +145,7 @@ class Dcmgr
   def dbUpdate
     vm_stat = AccessLibrary::readVMStatus
     Vm.all.each do |vm|
-      if vm.status == "Initilizing"
+      if vm.status == "Initilizing" or vm.status == "Halted"
         if vm_stat["v#{vm.id}"] == "running"
           vm.status = "Running"
           vm.save
@@ -143,6 +153,11 @@ class Dcmgr
       elsif vm.status == "Terminating"
         if not vm_stat["v#{vm.id}"]
           vm.status = "Terminated"
+          vm.save
+        end
+      elsif vm.status == "Halting" or vm.status == "Running"
+        if vm_stat["v#{vm.id}"] == "shut"
+          vm.status = "Halted"
           vm.save
         end
       end
@@ -270,6 +285,40 @@ class Dcmgr
     return res
   end
 
+  def cmdPoweroff(req, res)
+    vm = Vm.find(req[:VM_id])
+    if vm.status == "Running" or vm.status == "Initilizing"
+      res[:Message] = "OK"
+      res[:Param] = {
+        :VM_id => req[:VM_id],
+        :Status => "Halting"
+      }
+      vm.status = "Halting"
+      vm.save
+      AccessLibrary::poweroff(vm.host, req[:Req_id], "v" + req[:VM_id].to_s)
+    else
+      res[:Message] = "The VM is not running"
+    end
+    return res
+  end
+
+  def cmdPoweron(req, res)
+    vm = Vm.find(req[:VM_id])
+    if vm.status == "Halted"
+      res[:Message] = "OK"
+      res[:Param] = {
+        :VM_id => req[:VM_id],
+        :Status => "Running"
+      }
+      vm.status = "Running"
+      vm.save
+      AccessLibrary::poweron(vm.host, req[:Req_id], "v" + req[:VM_id].to_s)
+    else
+      res[:Message] = "The VM is not halted"
+    end
+    return res
+  end
+
   def cmdBarusu(req, res)
     res[:Message] = "OK"
     refreshDatabase
@@ -293,9 +342,9 @@ class Dcmgr
     when "list"
       res = cmdList(req, res)
     when "power-on"
-      res[:Message] = "ERROR: #{c} has not been supported."
+      res = cmdPoweron(req, req)
     when "power-off"
-      res[:Message] = "ERROR: #{c} has not been supported."
+      res = cmdPoweroff(req, res)
     when "terminate"
       res = cmdTerminate(req, res)
     when "barusu"
