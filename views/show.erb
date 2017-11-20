@@ -1,4 +1,15 @@
-<%= @name %>
-<%= @cpu %>
-<%= @memory %>
-<%= @ssh_key %>
+<% if @new_vm["Message"] == "OK" then %>
+<h2>New VM created!</h2>
+  <table>
+    <% @new_data.each do |key,value| %>
+    <tr>
+      <td><%= key %></td>
+      <td><%= value %></td>
+      <% end %>
+    </tr>
+
+  </table>
+<% else %>
+<h2>Faild to create VM</h2>
+  <%= @new_vm["Message"] %>
+<% end %>
