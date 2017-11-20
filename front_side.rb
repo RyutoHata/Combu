@@ -23,7 +23,8 @@ end
 get '/vm' do
   list = set_list_params
   response = call_manager(list)
-  return response
+  @list = conv_hash(response)
+  erb :index
 end
 
 put '/vm/:id' do
@@ -96,4 +97,9 @@ def set_all_terminated_params
   request["Command"] = "barusu"
   all_terminated = JSON.dump(request)
   return all_terminated
+end
+
+def conv_hash(json)
+  hash = JSON.parse(json)
+  hash
 end
