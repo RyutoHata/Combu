@@ -37,14 +37,14 @@ end
 delete '/vm/:id' do
   terminated = set_terminated_params
   response = call_manager(terminated)
-  return response
+  @deleted_vm = conv_hash(response)
+  erb :delete
 end
 
 delete '/vm' do
   all_terminated = set_all_terminated_params
   response = call_manager(all_terminated)
-  @deleted_vm = conv_hash(response)
-  erb :delete
+  return response
 end
 
 private
