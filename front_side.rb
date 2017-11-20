@@ -24,6 +24,7 @@ get '/vm' do
   list = set_list_params
   response = call_manager(list)
   @list = conv_hash(response)
+  @data = @list['Param']
   erb :index
 end
 
@@ -34,7 +35,7 @@ put '/vm/:id' do
 end
 
 delete '/vm/:id' do
-  terminated = get_terminated_params
+  terminated = set_terminated_params
   response = call_manager(terminated)
   return response
 end
@@ -42,7 +43,8 @@ end
 delete '/vm' do
   all_terminated = set_all_terminated_params
   response = call_manager(all_terminated)
-  return response
+  @deleted_vm = conv_hash(response)
+  erb :delete
 end
 
 private
