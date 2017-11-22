@@ -1,0 +1,81 @@
+インストールコマンド
+#!/bin/sh
+mkdir /home/kvm/disk/$1
+virt-install \
+--connect=qemu:///system \
+--name=$1 \
+--vcpus=1 \
+--memory=1024 \
+--location='/home/kvm/iso/CentOS-7-x86_64-Minimal-1708.iso' \
+--disk path=/home/kvm/disk/$1/disk.qcow2,format=qcow2,size=8 \
+--network bridge=br0 \
+--os-variant=rhel7 \
+--os-type linux \
+--console pty,target_type=serial \
+--nographics \
+-v -x 'console=ttyS0'
+
+
+
+種インストール
+timezoneの設定 <Tokyo>
+userの作成 user1, adminに追加 パスワードなし
+root passwordの設定 system02@
+インストール先の選択
+ネットワークの設定 (no dchp, tmp ip, ipv6 ignore, dns:8.8.8.8 ..)
+
+
+vi /etc/sysconfig/network-scripts/ifcfg-eth0
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=static
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+IPV6_ADDR_GEN_MODE=stable-privacy
+NAME=eth0
+UUID=29f17705-a11e-4474-ae64-b078103c977c
+DEVICE=eth0
+ONBOOT=yes
+PREFIX=24
+GATEWAY=192.168.0.1
+DNS1=8.8.8.8
+IPADDR=192.168.0.100
+
+
+
+$ ssh-keygen
+$ touch ~/.ssh/authorized_keys
+$ chmod 600 ~/.ssh/authorized_keys
+# su
+# ssh-keygen
+
+# mkdir /metadata
+
+vi /etc/rc.local
+(*以下を追加。)
+mount LABEL=METADATA /metadata
+KEYS=`cat /metadata/id_rsa.pub`
+if ! grep -q "$KEYS" /home/user1/.ssh/authorized_keys; then
+cat /metadata/id_rsa.pub >> /home/user1/.ssh/authorized_keys
+fi
+
+\cp -f /metadata/ifcfg-* /etc/sysconfig/network-scripts/
+HN=`cat /metadata/hostname`
+hostname $HN
+if ! grep -q "$HN" /etc/hosts; then
+  sed -i "/127.0.0.1.*localhost/a\127.0.0.1 $HN" /etc/hosts
+fi
+systemctl restart network
+
+# chmod 755 /etc/rc.local
+
+vi /etc/ssh/sshd-config
+(*以下を書き換え)
+PermitRootLogin no
+PubkeyAuthentication yes
+PasswordAuthentication no
